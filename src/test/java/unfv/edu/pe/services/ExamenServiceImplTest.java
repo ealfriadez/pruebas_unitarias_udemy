@@ -43,6 +43,7 @@ class ExamenServiceImplTest {
 	@BeforeEach
 	void setUp() {
 		
+		//Otra forma de inicializar los mocks
 		//MockitoAnnotations.openMocks(this);
 		/*
 		 * repository = mock(ExamenRepository.class); preguntaRepository =
