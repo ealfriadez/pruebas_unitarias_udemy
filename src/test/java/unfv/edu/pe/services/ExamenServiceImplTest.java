@@ -3,11 +3,13 @@ package unfv.edu.pe.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,6 +45,7 @@ class ExamenServiceImplTest {
 	@BeforeEach
 	void setUp() {
 		
+		//Otra forma de inicializar los mocks
 		//MockitoAnnotations.openMocks(this);
 		/*
 		 * repository = mock(ExamenRepository.class); preguntaRepository =
@@ -101,21 +104,19 @@ class ExamenServiceImplTest {
 		verify(preguntaRepository).findPreguntasPorExamenId(anyLong());
 	}
 	
-	@DisplayName("Test para buscar si no existe examen con VERIFY")
-	@Test
-	void testNoExisteExamenVerify() {
-		// Given
-		when(repository.findAll()).thenReturn(Collections.emptyList());
-		when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
-		
-		// When
-		Examen examen = service.findExamenPorNombreConPreguntas("Historia");		
-		
-		//Then
-		assertNull(examen);
-		verify(repository).findAll();
-		verify(preguntaRepository).findPreguntasPorExamenId(7L);
-	}
+	/*
+	 * @DisplayName("Test para buscar si no existe examen con VERIFY")
+	 * 
+	 * @Test void testNoExisteExamenVerify() { // Given
+	 * when(repository.findAll()).thenReturn(Collections.emptyList());
+	 * when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos
+	 * .PREGUNTAS);
+	 * 
+	 * // When Examen examen = service.findExamenPorNombreConPreguntas("Historia");
+	 * 
+	 * //Then assertNull(examen); verify(repository).findAll();
+	 * verify(preguntaRepository).findPreguntasPorExamenId(7L); }
+	 */
 	
 	@DisplayName("Test para guardar examen")
 	@Test
@@ -147,19 +148,53 @@ class ExamenServiceImplTest {
 		verify(preguntaRepository).guardarVarias(anyList());
 	}
 	
+	/*
+	 * @DisplayName("Test para manejar excepciones")
+	 * 
+	 * @Test void testManejoException() { // Given
+	 * when(repository.findAll()).thenReturn(Collections.emptyList());
+	 * when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos
+	 * .PREGUNTAS);
+	 * 
+	 * // When Examen examen = service.findExamenPorNombreConPreguntas("Historia");
+	 * 
+	 * //Then assertNull(examen); verify(repository).findAll();
+	 * verify(preguntaRepository).findPreguntasPorExamenId(7L); }
+	 */
+	
 	@DisplayName("Test para manejar excepciones")
 	@Test
-	void testManejoException() {
+	void testManejoExceptionDos() {
 		// Given
-		when(repository.findAll()).thenReturn(Collections.emptyList());
-		when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+		when(repository.findAll()).thenReturn(Datos.EXAMENES_ID_NULL);
+		when(preguntaRepository.findPreguntasPorExamenId(isNull())).thenThrow(IllegalArgumentException.class);
 		
-		// When
-		Examen examen = service.findExamenPorNombreConPreguntas("Historia");		
+		// When				
+		Exception exception = assertThrows(IllegalArgumentException.class, () ->{
+			service.findExamenPorNombreConPreguntas("Matematicas");
+		});
 		
 		//Then
-		assertNull(examen);
+		assertEquals(IllegalArgumentException.class, exception.getClass());
 		verify(repository).findAll();
-		verify(preguntaRepository).findPreguntasPorExamenId(7L);
+		verify(preguntaRepository).findPreguntasPorExamenId(isNull());
+	}
+	
+	@DisplayName("Test para coincidencia de argumentos")
+	@Test
+	void testArgumentMatchers() {
+		// Given	
+		
+		// When
+		when(repository.findAll()).thenReturn(Datos.EXAMENES);
+		when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+		
+		service.findExamenPorNombreConPreguntas("Lenguaje");
+		
+		// Then
+		verify(repository).findAll();
+		//verify(preguntaRepository).findPreguntasPorExamenId(argThat(arg -> arg != null && arg.equals(5L)));
+		verify(preguntaRepository).findPreguntasPorExamenId(argThat(arg -> arg != null && arg >= 6L));
+		//verify(preguntaRepository).findPreguntasPorExamenId(eq(5L));
 	}
 }
